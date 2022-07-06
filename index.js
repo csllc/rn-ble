@@ -1,8 +1,8 @@
 /**
  * Exports a static class that wraps react-native-ble-manager
  *
- * This makes the BLE hardware interface a bit more generic and compatible
- * with modules like @csllc/cs1816-rn
+ * This makes the BLE hardware interface compatible with
+ * packages like @csllc/cs1816
  *
  */
 
@@ -16,16 +16,14 @@ let listeners = {};
 export const Ble = class {
 
   static async initialize(options) {
-    //console.log('Ble::initialize', Ble);
     await BleManager.start(options);
 
     bleManagerEmitter.addListener(
       'BleManagerDidUpdateValueForCharacteristic',
-      Ble.onNotify);
+      Ble._onNotify);
   }
 
   static async startScan(services, options) {
-    console.log('scan');
     let seconds = options && options.duration || 5000;
     let allowDuplicates = options && options.duplicates || false;
     return BleManager.scan(services, seconds / 1000, allowDuplicates, options);
@@ -55,7 +53,6 @@ export const Ble = class {
   }
 
   static subscribe(peripheral, service, characteristic, cb) {
-    //console.log('subscribe', characteristic, peripheral.id);
 
     // add the callback to our listeners
     listeners[peripheral.id] = listeners[peripheral.id] || {};
@@ -65,11 +62,10 @@ export const Ble = class {
   }
 
   static unsubscribe(peripheral, service, characteristic) {
-
+    return BleManager.stopNotification(peripheral.id, service, characteristic);
   }
 
-  static onNotify(data) {
-    //console.log('onNotify', data, listeners);
+  static _onNotify(data) {
 
     if(listeners[data.peripheral] &&
       listeners[data.peripheral][data.service] &&
