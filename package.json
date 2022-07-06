@@ -1,6 +1,6 @@
 {
   "name": "@csllc/rn-mb-ble",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "repository": "https://github.com/csllc/rn-mb-ble",
   "main": "index.js",
