@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "sourceMap": true,
+    "declaration": true,
+    "removeComments": true,
+    "target":"ES2019",
+    "outDir": "lib",
+
+
+    "baseUrl": ".",
+    "paths": {
+      "@csllc/blejs-types": ["node_modules/@csllc/blejs-types/src"],
+    }
+    },
+    "include":["./src/**/*"]
+}
