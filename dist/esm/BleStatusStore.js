@@ -1,4 +1,3 @@
-import BleManager from '@csllc/rn-mb-ble/src/BleManager';
 var log = {
     info(...a) {
         console.log(...a);
@@ -21,16 +20,18 @@ const INIT_STATE = {
     isScanning: false,
 };
 let state = { ...INIT_STATE };
+let manager;
 let listeners = [];
 export const BleStatusStore = {
-    initialize(options) {
+    initialize(ble, options) {
         log = (options === null || options === void 0 ? void 0 : options.logger) || log;
         log.trace('initialize');
-        BleManager.on('scanning', onScanning);
-        BleManager.on('enable', onEnable);
+        manager = ble;
+        manager.on('scanning', onScanning);
+        manager.on('enable', onEnable);
         async function init() {
             state = { ...INIT_STATE };
-            let isAvailable = await BleManager.isSupported();
+            let isAvailable = await manager.isSupported();
             let isAuthorized = isAvailable;
             emitChange({ isAvailable, isAuthorized });
         }
@@ -42,22 +43,22 @@ export const BleStatusStore = {
     },
     destroy() {
         log.trace('destroy');
-        BleManager.off('enable', onEnable);
-        BleManager.off('scanning', onScanning);
+        manager.off('enable', onEnable);
+        manager.off('scanning', onScanning);
     },
     async enable() {
-        return BleManager.enable();
+        return manager.enable();
     },
     async checkState() {
-        return BleManager.checkState();
+        return manager.checkState();
     },
     async startScan(services, duration) {
         log.info('StartScan', duration);
-        await BleManager.startScan(services, null, { duration, duplicates: true });
+        await manager.startScan(services, null, { duration, duplicates: true });
     },
     async stopScan() {
         log.info('StopScan');
-        await BleManager.stopScan();
+        await manager.stopScan();
     },
     subscribe(listener) {
         listeners = [...listeners, listener];

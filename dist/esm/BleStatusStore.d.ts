@@ -1,4 +1,4 @@
-import { Logger } from '@csllc/blejs-types';
+import { Ble, Logger } from '@csllc/blejs-types';
 type Listener = () => void;
 export interface BleState {
     isReady?: boolean;
@@ -8,7 +8,7 @@ export interface BleState {
     isScanning?: boolean;
 }
 export declare const BleStatusStore: {
-    initialize(options: {
+    initialize(ble: Ble, options: {
         logger?: Logger;
     }): void;
     destroy(): void;

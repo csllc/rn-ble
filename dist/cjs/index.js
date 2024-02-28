@@ -15,7 +15,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BleStatusStore = exports.BlePeripheralState = exports.BlePeripheralStore = void 0;
-__exportStar(require("@csllc/rn-mb-ble/src/BleManager"), exports);
+__exportStar(require("./BleManager"), exports);
 var BlePeripheralStore_1 = require("./BlePeripheralStore");
 Object.defineProperty(exports, "BlePeripheralStore", { enumerable: true, get: function () { return BlePeripheralStore_1.BlePeripheralStore; } });
 Object.defineProperty(exports, "BlePeripheralState", { enumerable: true, get: function () { return BlePeripheralStore_1.BlePeripheralState; } });

@@ -11,13 +11,10 @@
     "declaration": true,
     "removeComments": true,
     "target":"ES2019",
-    "outDir": "lib",
+    "outDir": "dist",
 
-
-    "baseUrl": ".",
-    "paths": {
-      "@csllc/blejs-types": ["node_modules/@csllc/blejs-types/src"],
-    }
+    "baseUrl": "./src",
+    "rootDir": "./src"
     },
-    "include":["./src/**/*"]
+    "include":["./src/**/*.ts","./src/**/*.d.ts"],
 }

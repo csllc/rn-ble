@@ -4,8 +4,7 @@
  * Presents a subscriber interface so callers can be notified of state changes.  This
  * is compatible for instance with React useSyncExternalStore
  */
-import BleManager from '@csllc/rn-mb-ble/src/BleManager';
-import {Logger} from '@csllc/blejs-types';
+import { Ble, Logger } from '@csllc/blejs-types';
 
 var log: Logger = {
   info(...a: any) {
@@ -63,31 +62,34 @@ const INIT_STATE = {
   isScanning: false,
 };
 
-let state: BleState = {...INIT_STATE};
+let state: BleState = { ...INIT_STATE };
+
+let manager: Ble;
 
 // all our subscriber callbacks
 let listeners: Listener[] = [];
 
 export const BleStatusStore = {
   // Call once after Bluetooth driver is started.  Figures out the initial state
-  initialize(options: {logger?: Logger}) {
+  initialize(ble: Ble, options: { logger?: Logger }) {
     log = options?.logger || log;
     log.trace('initialize');
+    manager = ble;
 
-    BleManager.on('scanning', onScanning);
-    BleManager.on('enable', onEnable);
+    manager.on('scanning', onScanning);
+    manager.on('enable', onEnable);
 
     async function init() {
-      state = {...INIT_STATE};
-      let isAvailable = await BleManager.isSupported();
+      state = { ...INIT_STATE };
+      let isAvailable = await manager.isSupported();
 
       let isAuthorized = isAvailable;
 
-      emitChange({isAvailable, isAuthorized});
+      emitChange({ isAvailable, isAuthorized });
     }
     init()
       .then(() => {
-        emitChange({isReady: true});
+        emitChange({ isReady: true });
       })
       .catch(err => log.error('Init failed', err));
   },
@@ -96,31 +98,31 @@ export const BleStatusStore = {
   destroy() {
     log.trace('destroy');
 
-    BleManager.off('enable', onEnable);
-    BleManager.off('scanning', onScanning);
+    manager.off('enable', onEnable);
+    manager.off('scanning', onScanning);
   },
 
   // ask the operating system to turn on Bluetooth (if supported)
   async enable() {
-    return BleManager.enable();
+    return manager.enable();
   },
 
   // check state.  Sometimes the operating system does not notify us of state changes
   // example: Android user turns off bluetooth while app is backgrounded.  You can
   // use this to manually verify the state (like when the app returns to the foreground)
   async checkState() {
-    return BleManager.checkState();
+    return manager.checkState();
   },
 
   async startScan(services: string[], duration: number) {
     log.info('StartScan', duration);
     // start scanning, and continually update (to show current rssi value)
-    await BleManager.startScan(services, null, {duration, duplicates: true});
+    await manager.startScan(services, null, { duration, duplicates: true });
   },
 
   async stopScan() {
     log.info('StopScan');
-    await BleManager.stopScan();
+    await manager.stopScan();
   },
 
   // provide a callback for state changes
@@ -139,7 +141,7 @@ export const BleStatusStore = {
 
 // Notify all our listeners that something has changed
 function emitChange(update: BleState) {
-  state = {...state, ...update};
+  state = { ...state, ...update };
   log.trace('emitChange', JSON.stringify(update));
 
   for (let listener of listeners) {
@@ -150,13 +152,13 @@ function emitChange(update: BleState) {
 // Event handler - scanning state changed
 function onScanning(isScanning: boolean) {
   if (state.isScanning !== isScanning) {
-    emitChange({isScanning});
+    emitChange({ isScanning });
   }
 }
 
 // Event handler - BLE driver state changed
 function onEnable(isEnabled: boolean) {
   if (state.isEnabled !== isEnabled) {
-    emitChange({isEnabled});
+    emitChange({ isEnabled });
   }
 }

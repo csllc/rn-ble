@@ -1,10 +1,6 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BleStatusStore = void 0;
-const BleManager_1 = __importDefault(require("@csllc/rn-mb-ble/src/BleManager"));
 var log = {
     info(...a) {
         console.log(...a);
@@ -27,16 +23,18 @@ const INIT_STATE = {
     isScanning: false,
 };
 let state = { ...INIT_STATE };
+let manager;
 let listeners = [];
 exports.BleStatusStore = {
-    initialize(options) {
+    initialize(ble, options) {
         log = (options === null || options === void 0 ? void 0 : options.logger) || log;
         log.trace('initialize');
-        BleManager_1.default.on('scanning', onScanning);
-        BleManager_1.default.on('enable', onEnable);
+        manager = ble;
+        manager.on('scanning', onScanning);
+        manager.on('enable', onEnable);
         async function init() {
             state = { ...INIT_STATE };
-            let isAvailable = await BleManager_1.default.isSupported();
+            let isAvailable = await manager.isSupported();
             let isAuthorized = isAvailable;
             emitChange({ isAvailable, isAuthorized });
         }
@@ -48,22 +46,22 @@ exports.BleStatusStore = {
     },
     destroy() {
         log.trace('destroy');
-        BleManager_1.default.off('enable', onEnable);
-        BleManager_1.default.off('scanning', onScanning);
+        manager.off('enable', onEnable);
+        manager.off('scanning', onScanning);
     },
     async enable() {
-        return BleManager_1.default.enable();
+        return manager.enable();
     },
     async checkState() {
-        return BleManager_1.default.checkState();
+        return manager.checkState();
     },
     async startScan(services, duration) {
         log.info('StartScan', duration);
-        await BleManager_1.default.startScan(services, null, { duration, duplicates: true });
+        await manager.startScan(services, null, { duration, duplicates: true });
     },
     async stopScan() {
         log.info('StopScan');
-        await BleManager_1.default.stopScan();
+        await manager.stopScan();
     },
     subscribe(listener) {
         listeners = [...listeners, listener];
