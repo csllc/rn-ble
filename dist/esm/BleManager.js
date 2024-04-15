@@ -74,14 +74,12 @@ const BleManager = {
     },
     async isAllowed() {
         if (Platform.OS === 'android' && Platform.Version >= 31) {
-            let result = await PermissionsAndroid.requestMultiple([
+            let results = await PermissionsAndroid.requestMultiple([
                 PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
                 PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
             ]);
-            if (result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] ===
-                PermissionsAndroid.RESULTS.GRANTED &&
-                result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] ===
-                    PermissionsAndroid.RESULTS.GRANTED) {
+            const allPermissionsGranted = Object.values(results).every((status) => status === PermissionsAndroid.RESULTS.GRANTED);
+            if (allPermissionsGranted) {
                 logger.trace('[handleAndroidPermissions] User accepts runtime permissions android 12+');
                 return true;
             }
