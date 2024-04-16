@@ -1,3 +1,3 @@
 import { Ble } from '@csllc/blejs-types';
-declare const BleManager: Ble;
-export default BleManager;
+declare const RnBleManager: Ble;
+export default RnBleManager;

@@ -6,7 +6,10 @@
  *
  */
 
-import RnBle, {
+//import RnBle from 'react-native-ble-manager';
+
+import BleManager, {
+
   BleDisconnectPeripheralEvent,
   BleDiscoverPeripheralEvent,
   // BleManagerDidUpdateNotificationStateForEvent,
@@ -18,6 +21,8 @@ import RnBle, {
   BleState,
   Peripheral,
 } from 'react-native-ble-manager';
+
+const RnBle = BleManager;
 
 import {
   EmitterSubscription,
@@ -159,7 +164,7 @@ function _reportState(state: BleState) {
   }
 }
 
-const BleManager: Ble = {
+const RnBleManager: Ble = {
   /**
    * Test to see if BLE functionality is available and allowed on this device
    *
@@ -244,7 +249,6 @@ const BleManager: Ble = {
     logger = options?.logger || logger;
 
     await RnBle.start(options?.rnbm);
-
     logger.trace('Ble started', Platform.OS);
 
     logger.trace('registering events');
@@ -267,7 +271,7 @@ const BleManager: Ble = {
     ];
 
     // Make sure we know the state (eg is bluetooth enabled in system settings)
-    BleManager.checkState().catch((err: Error) => logger.error(err));
+    RnBleManager.checkState().catch((err: Error) => logger.error(err));
     return true;
   },
 
@@ -531,4 +535,4 @@ const BleManager: Ble = {
   },
 };
 
-export default BleManager;
+export default RnBleManager;

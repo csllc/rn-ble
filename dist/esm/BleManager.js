@@ -1,4 +1,5 @@
-import RnBle, { BleScanCallbackType, BleScanMatchMode, BleScanMode, } from 'react-native-ble-manager';
+import BleManager, { BleScanCallbackType, BleScanMatchMode, BleScanMode, } from 'react-native-ble-manager';
+const RnBle = BleManager;
 import { NativeEventEmitter, NativeModules, PermissionsAndroid, Platform, } from 'react-native';
 import EventEmitter from 'eventemitter3';
 const BleManagerModule = NativeModules.BleManager;
@@ -68,7 +69,7 @@ function _reportState(state) {
             break;
     }
 }
-const BleManager = {
+const RnBleManager = {
     async isSupported() {
         return true;
     },
@@ -113,7 +114,9 @@ const BleManager = {
     },
     async initialize(options) {
         logger = (options === null || options === void 0 ? void 0 : options.logger) || logger;
+        console.log('RnBle', RnBle, RnBle.start);
         await RnBle.start(options === null || options === void 0 ? void 0 : options.rnbm);
+        console.log('started');
         logger.trace('Ble started', Platform.OS);
         logger.trace('registering events');
         eventHandlers = [
@@ -123,7 +126,7 @@ const BleManager = {
             bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', _onNotify),
             bleManagerEmitter.addListener('BleManagerDidUpdateState', _onUpdateState),
         ];
-        BleManager.checkState().catch((err) => logger.error(err));
+        RnBleManager.checkState().catch((err) => logger.error(err));
         return true;
     },
     async enable() {
@@ -253,5 +256,5 @@ const BleManager = {
         return result;
     },
 };
-export default BleManager;
+export default RnBleManager;
 //# sourceMappingURL=BleManager.js.map

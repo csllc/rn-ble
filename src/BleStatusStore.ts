@@ -5,6 +5,7 @@
  * is compatible for instance with React useSyncExternalStore
  */
 import { Ble, Logger } from '@csllc/blejs-types';
+import BleManager from './BleManager';
 
 var log: Logger = {
   info(...a: any) {
@@ -64,26 +65,23 @@ const INIT_STATE = {
 
 let state: BleState = { ...INIT_STATE };
 
-let manager: Ble;
-
 // all our subscriber callbacks
 let listeners: Listener[] = [];
 
 export const BleStatusStore = {
   // Call once after Bluetooth driver is started.  Figures out the initial state
-  initialize(ble: Ble, options: { logger?: Logger }) {
+  initialize(options: { logger?: Logger }) {
     log = options?.logger || log;
     log.trace('initialize');
-    manager = ble;
 
-    manager.on('scanning', onScanning);
-    manager.on('enable', onEnable);
+    BleManager.on('scanning', onScanning);
+    BleManager.on('enable', onEnable);
 
     async function init() {
       state = { ...INIT_STATE };
-      let isAvailable = await manager.isSupported();
+      let isAvailable = await BleManager.isSupported();
 
-      let isAuthorized = isAvailable;
+      let isAuthorized = await BleManager.isAllowed();
 
       emitChange({ isAvailable, isAuthorized });
     }
@@ -98,31 +96,31 @@ export const BleStatusStore = {
   destroy() {
     log.trace('destroy');
 
-    manager.off('enable', onEnable);
-    manager.off('scanning', onScanning);
+    BleManager.off('enable', onEnable);
+    BleManager.off('scanning', onScanning);
   },
 
   // ask the operating system to turn on Bluetooth (if supported)
   async enable() {
-    return manager.enable();
+    return BleManager.enable();
   },
 
   // check state.  Sometimes the operating system does not notify us of state changes
   // example: Android user turns off bluetooth while app is backgrounded.  You can
   // use this to manually verify the state (like when the app returns to the foreground)
   async checkState() {
-    return manager.checkState();
+    return BleManager.checkState();
   },
 
   async startScan(services: string[], duration: number) {
     log.info('StartScan', duration);
     // start scanning, and continually update (to show current rssi value)
-    await manager.startScan(services, null, { duration, duplicates: true });
+    await BleManager.startScan(services, null, { duration, duplicates: true });
   },
 
   async stopScan() {
     log.info('StopScan');
-    await manager.stopScan();
+    await BleManager.stopScan();
   },
 
   // provide a callback for state changes

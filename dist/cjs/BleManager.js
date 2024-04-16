@@ -27,6 +27,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const react_native_ble_manager_1 = __importStar(require("react-native-ble-manager"));
+const RnBle = react_native_ble_manager_1.default;
 const react_native_1 = require("react-native");
 const eventemitter3_1 = __importDefault(require("eventemitter3"));
 const BleManagerModule = react_native_1.NativeModules.BleManager;
@@ -96,7 +97,7 @@ function _reportState(state) {
             break;
     }
 }
-const BleManager = {
+const RnBleManager = {
     async isSupported() {
         return true;
     },
@@ -137,11 +138,13 @@ const BleManager = {
         return true;
     },
     driver() {
-        return react_native_ble_manager_1.default;
+        return RnBle;
     },
     async initialize(options) {
         logger = (options === null || options === void 0 ? void 0 : options.logger) || logger;
-        await react_native_ble_manager_1.default.start(options === null || options === void 0 ? void 0 : options.rnbm);
+        console.log('RnBle', RnBle, RnBle.start);
+        await RnBle.start(options === null || options === void 0 ? void 0 : options.rnbm);
+        console.log('started');
         logger.trace('Ble started', react_native_1.Platform.OS);
         logger.trace('registering events');
         eventHandlers = [
@@ -151,15 +154,15 @@ const BleManager = {
             bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', _onNotify),
             bleManagerEmitter.addListener('BleManagerDidUpdateState', _onUpdateState),
         ];
-        BleManager.checkState().catch((err) => logger.error(err));
+        RnBleManager.checkState().catch((err) => logger.error(err));
         return true;
     },
     async enable() {
         if (react_native_1.Platform.OS === 'android') {
             try {
-                let info = await react_native_ble_manager_1.default.enableBluetooth();
+                let info = await RnBle.enableBluetooth();
                 logger.trace('enable', info);
-                let state = await react_native_ble_manager_1.default.checkState();
+                let state = await RnBle.checkState();
                 logger.trace('new State', state);
                 _reportState(state);
             }
@@ -170,7 +173,7 @@ const BleManager = {
         return true;
     },
     async checkState() {
-        let state = await react_native_ble_manager_1.default.checkState();
+        let state = await RnBle.checkState();
         logger.trace('checked State', state);
         _reportState(state);
     },
@@ -197,10 +200,10 @@ const BleManager = {
         if (react_native_1.Platform.OS === 'ios') {
         }
         else {
-            bondedPeripherals = await react_native_ble_manager_1.default.getBondedPeripherals();
+            bondedPeripherals = await RnBle.getBondedPeripherals();
             logger.trace('Bonded peripherals: ', bondedPeripherals.map(p => p.id));
         }
-        connectedPeripherals = await react_native_ble_manager_1.default.getConnectedPeripherals(services);
+        connectedPeripherals = await RnBle.getConnectedPeripherals(services);
         logger.trace('connected peripherals', connectedPeripherals.map(p => p.id));
         return [
             ...bondedPeripherals.map(p => peripheralToBlePeripheral(p)),
@@ -215,7 +218,7 @@ const BleManager = {
         if (cb) {
             events.on('discover', cb);
         }
-        await react_native_ble_manager_1.default.scan(services, 0, allowDuplicates, {
+        await RnBle.scan(services, 0, allowDuplicates, {
             matchMode: react_native_ble_manager_1.BleScanMatchMode.Sticky,
             scanMode: react_native_ble_manager_1.BleScanMode.LowLatency,
             callbackType: react_native_ble_manager_1.BleScanCallbackType.AllMatches,
@@ -225,41 +228,41 @@ const BleManager = {
     async stopScan() {
         logger.trace('Stop scan...');
         events.off('discover');
-        return react_native_ble_manager_1.default.stopScan();
+        return RnBle.stopScan();
     },
     async connect(peripheral) {
         logger.trace('Connect', peripheral.id);
-        await react_native_ble_manager_1.default.connect(peripheral.id);
+        await RnBle.connect(peripheral.id);
         await sleep(900);
     },
     async disconnect(peripheral, options) {
         var _a;
         let force = ((_a = options === null || options === void 0 ? void 0 : options.rnbm) === null || _a === void 0 ? void 0 : _a.force) === true;
         logger.trace('Disconnect', peripheral.id);
-        await react_native_ble_manager_1.default.disconnect(peripheral.id, force);
+        await RnBle.disconnect(peripheral.id, force);
         return true;
     },
     rssi(peripheral) {
-        return react_native_ble_manager_1.default.readRSSI(peripheral.id);
+        return RnBle.readRSSI(peripheral.id);
     },
     async read(peripheral, characteristic) {
-        const data = await react_native_ble_manager_1.default.read(peripheral.id, characteristic._c.service, characteristic._c.characteristic);
+        const data = await RnBle.read(peripheral.id, characteristic._c.service, characteristic._c.characteristic);
         return data;
     },
     write(peripheral, characteristic, data) {
-        return react_native_ble_manager_1.default.write(peripheral.id, characteristic._c.service, characteristic._c.characteristic, data);
+        return RnBle.write(peripheral.id, characteristic._c.service, characteristic._c.characteristic, data);
     },
     subscribe(peripheral, characteristic, cb) {
         logger.trace('subscribe', peripheral.id, characteristic.uuid);
-        return react_native_ble_manager_1.default.startNotification(peripheral.id, characteristic._c.service, characteristic._c.characteristic);
+        return RnBle.startNotification(peripheral.id, characteristic._c.service, characteristic._c.characteristic);
     },
     unsubscribe(peripheral, characteristic) {
-        return react_native_ble_manager_1.default.stopNotification(peripheral.id, characteristic._c.service, characteristic.uuid);
+        return RnBle.stopNotification(peripheral.id, characteristic._c.service, characteristic.uuid);
     },
     async findCharacteristics(peripheral, service, wanted) {
         let result = new Map();
         logger.trace('findCharacteristics', peripheral.id, normalizeUuid(service));
-        const peripheralInfo = await react_native_ble_manager_1.default.retrieveServices(peripheral.id, [
+        const peripheralInfo = await RnBle.retrieveServices(peripheral.id, [
             normalizeUuid(service),
         ]);
         if (peripheralInfo && peripheralInfo.characteristics) {
@@ -281,5 +284,5 @@ const BleManager = {
         return result;
     },
 };
-exports.default = BleManager;
+exports.default = RnBleManager;
 //# sourceMappingURL=BleManager.js.map
