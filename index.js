@@ -43,26 +43,26 @@ export const Ble = class {
   }
 
 
-  static read(peripheral, service, characteristic) {
-    return BleManager.read(peripheral.id, service, characteristic);
+  static read(peripheral, characteristic) {
+    return BleManager.read(peripheral.id, characteristic.service, characteristic.characteristic);
   }
 
 
-  static write(peripheral, service, characteristic, data) {
-    return BleManager.write(peripheral.id, service, characteristic, data);
+  static write(peripheral, characteristic, data) {
+    return BleManager.write(peripheral.id, characteristic.service, characteristic.characteristic, data);
   }
 
-  static subscribe(peripheral, service, characteristic, cb) {
+  static subscribe(peripheral, characteristic, cb) {
 
     // add the callback to our listeners
     listeners[peripheral.id] = listeners[peripheral.id] || {};
-    listeners[peripheral.id][service] = listeners[peripheral.id][service] || {};
-    listeners[peripheral.id][service][characteristic] = cb;
-    return BleManager.startNotification(peripheral.id, service, characteristic);
+    listeners[peripheral.id][characteristic.service] = listeners[peripheral.id][characteristic.service] || {};
+    listeners[peripheral.id][characteristic.service][characteristic.characteristic] = cb;
+    return BleManager.startNotification(peripheral.id, characteristic.service, characteristic.characteristic);
   }
 
-  static unsubscribe(peripheral, service, characteristic) {
-    return BleManager.stopNotification(peripheral.id, service, characteristic);
+  static unsubscribe(peripheral,characteristic) {
+    return BleManager.stopNotification(peripheral.id, characteristic.service, characteristic.characteristic);
   }
 
   static _onNotify(data) {
@@ -73,5 +73,29 @@ export const Ble = class {
 
       listeners[data.peripheral][data.service][data.characteristic](data);
     }
+  }
+
+  static async findCharacteristics(peripheral, service, wanted) {
+    let result = {};
+
+    let foundService = await BleManager.retrieveServices(peripheral.id);
+    
+    foundService = foundService.characteristics.filter(element => {
+      return element.service == service;
+    });
+    if (foundService && foundService.length > 0) {
+      for (const w in wanted) {
+        let found = foundService.find(c => {
+          return c.characteristic == wanted[w].characteristic;
+        });
+
+        if (found) {
+          result[wanted[w].name] = found;
+        } else if (wanted[w].required) {
+          throw new Error('Required Characteristic not found');
+        }
+      }
+    }
+    return result;
   }
 };

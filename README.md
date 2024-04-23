@@ -1,2 +1,2 @@
-# cs-mb-ble-rn
+# @csllc/rn-mb-ble
 
